@@ -5,21 +5,22 @@ from PIL import Image
 from io import BytesIO
 from transformers import CLIPProcessor, CLIPModel
 
-def extract_attributes(attributes):
+def extract_attributes(attributes: str):
   try:
     if isinstance(attributes, str):
       attributes = json.loads(attributes)
 
-    character_desc = attributes.get("people", [""])[0]
-    action_desc = ", ".join(attributes.get("actions", []))
-    background_desc = attributes.get("background", [""])[0]
-    location_desc = attributes.get("location", [""])[0]
-    return character_desc, action_desc, background_desc, location_desc
+    character_description = attributes.get("people", [""])[0]
+    action_description = ", ".join(attributes.get("actions", []))
+    background_description = attributes.get("background", [""])[0]
+    location_description = attributes.get("location", [""])[0]
+
+    return character_description, action_description, background_description, location_description
 
   except Exception as e:
     print(e)
 
-def get_image_score(image_url: str, attributes: dict) -> float:
+def get_image_score(image_url: str, image_attributes: dict) -> float:
   try:
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -34,21 +35,20 @@ def get_image_score(image_url: str, attributes: dict) -> float:
     response = requests.get(image_url)
     image = Image.open(BytesIO(response.content)).convert("RGB")
 
-    character_desc, action_desc, background_desc, location_desc = extract_attributes(attributes)
+    character_description, action_description, background_description, location_description = extract_attributes(image_attributes)
 
     parts = {
-      "character": character_desc,
-      "action": action_desc,
-      "background": background_desc,
-      "location": location_desc
+      "character": character_description,
+      "action": action_description,
+      "background": background_description,
+      "location": location_description
     }
 
     total_score = 0.0
     for key, desc in parts.items():
       if not desc:
         continue
-      # Always compare against a neutral or unrelated caption
-      text_prompts = [desc, "A completely unrelated image"]
+      text_prompts = [desc, "a completely unrelated image"]
       inputs = processor(text=text_prompts, images=image, return_tensors="pt", padding=True)
       outputs = model(**inputs)
       logits_per_image = outputs.logits_per_image
@@ -59,15 +59,15 @@ def get_image_score(image_url: str, attributes: dict) -> float:
     return round(total_score, 4)
 
   except Exception as e:
-    print("Error:", e)
+    print(e)
     return 0.0
 
-def rank_images(images: list, desc_analyze: str) -> list:
+def rank_images(images: list, image_attributes: str) -> list:
   try:
     scored_images = []
-    for img in images:
-      score = get_image_score(img, desc_analyze)
-      scored_images.append((img, score))
+    for image in images:
+      score = get_image_score(image, image_attributes)
+      scored_images.append((image, score))
 
     scored_images.sort(key=lambda x: x[1], reverse=True)
     return scored_images
