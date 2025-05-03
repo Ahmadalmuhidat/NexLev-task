@@ -32,6 +32,7 @@ class Program:
         for url, score in ranked_images:
           if score > 0.6:
             self.images_urls.append(url)
+          print("done..")
       
       self.display_images_results()
 
@@ -53,9 +54,7 @@ class Program:
         label = customtkinter.CTkLabel(
           self.result_frame,
           image=image,
-          text=""
         )
-        # label.image = img
         label.pack(
           padx=10,
           pady=10
@@ -68,7 +67,7 @@ class Program:
     try:
       app = customtkinter.CTk()
       app.geometry("800x600")
-      app.title("")
+      app.title("Nexlev Task")
 
       self.search_entry = customtkinter.CTkEntry(
         app,

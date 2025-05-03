@@ -7,7 +7,7 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-def google_image_search(query: str, num = 5) -> list:
+def google_image_search(query: str, num = 1) -> list:
   try:
     url = "https://www.googleapis.com/customsearch/v1"
     params = {
